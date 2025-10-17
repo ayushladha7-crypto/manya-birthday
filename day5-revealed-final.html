@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Revealed — The Day You Were Born for Me (Final No Sound)</title>
+<style>
+  :root{
+    --bg1:#fff7f9; --bg2:#ffeef2;
+    --accent:#ff7a9b; --accent2:#ffb6c8;
+    --muted:#6b2a3a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial; background:linear-gradient(180deg,var(--bg1),var(--bg2)); color:var(--muted); display:flex; align-items:center; justify-content:center; min-height:100vh; padding:28px;}
+  .wrap{width:980px; max-width:98%; background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,246,246,0.9)); border-radius:14px; padding:22px; box-shadow:0 30px 80px rgba(0,0,0,0.06); display:flex; gap:28px; align-items:flex-start;}
+  .left{flex:0 0 520px}
+  .right{flex:1; padding-top:6px}
+  h1{margin:0 0 6px 0; font-size:22px; color:var(--accent); font-weight:900}
+  p.lead{margin:6px 0 16px 0; color:#6b2a3a}
+  .sequence{display:flex; flex-direction:column; gap:12px}
+  .step{display:flex; gap:12px; align-items:center; background:rgba(255,255,255,0.85); border-radius:12px; padding:14px; border:1px solid rgba(255,182,195,0.4);}
+  .step-num{width:56px; height:56px; border-radius:10px; background:linear-gradient(90deg,var(--accent),var(--accent2)); color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:20px;}
+  .step-body{flex:1}
+  .step-title{font-weight:900; font-size:15px; margin:0; color:var(--muted)}
+  .step-sub{margin:6px 0 0 0; font-size:13px; color:#8a3b4a}
+  .reveal-block{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:18px; justify-items:center;}
+  .tile{
+    background:linear-gradient(180deg,#fff,#fff6f8); border-radius:12px; width:100%; max-width:180px; min-height:120px; display:flex; align-items:center; justify-content:center; flex-direction:column; padding:12px; box-shadow:0 10px 30px rgba(255,120,150,0.06); border:1px solid rgba(0,0,0,0.04);
+    cursor:pointer; user-select:none; transition:transform .18s, box-shadow .18s, background .28s;
+  }
+  .tile.locked{filter:grayscale(0.25); opacity:0.98}
+  .tile .word{font-weight:900; font-size:18px; letter-spacing:0.8px; text-transform:uppercase; color:var(--accent); opacity:0.02; transition:opacity .36s ease, transform .36s ease;}
+  .tile.revealed .word{opacity:1; transform:translateY(0); color:var(--accent2);}
+  .tile .line{margin-top:8px; font-size:13px; color:#5b2836; opacity:0; max-width:180px; text-align:center; transition:opacity .36s ease;}
+  .tile.revealed .line{opacity:1}
+  .controls{margin-top:14px; display:flex; gap:10px; align-items:center}
+  button{padding:10px 14px; border-radius:10px; border:none; background:linear-gradient(90deg,var(--accent),var(--accent2)); color:white; font-weight:900; cursor:pointer}
+  button.secondary{background:transparent; color:var(--accent); border:2px solid rgba(255,120,150,0.12); font-weight:800}
+  .hinttiny{font-size:13px; color:#8b5566}
+  .overlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.6); z-index:80; padding:18px}
+  .final{width:920px; max-width:96%; background:linear-gradient(180deg,#fff0f4,#fff9f9); border-radius:14px; padding:28px; text-align:center; box-shadow:0 40px 100px rgba(0,0,0,0.28); color:#401723}
+  .final h2{margin:0 0 8px 0; color:#a32638; font-size:22px}
+  .final p{margin:8px 0; line-height:1.6; font-size:15px}
+  .stamps{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:14px}
+  .stamp{background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,250,240,0.98)); padding:10px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.04); font-weight:800; color:#5b2836}
+  .closeBtn{margin-top:18px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="left">
+      <h1>Revealed — The Day You Were Born For Me</h1>
+      <p class="lead">Click each tile in order to reveal the lines of a small love-letter. This is <strong>fixed sequence</strong> — the moments unfold one by one.</p>
+
+      <div class="sequence">
+        <div class="step"><div class="step-num">5</div><div class="step-body"><p class="step-title">Final — 23 Oct</p><p class="step-sub">A final thank-you and the memory trail of us.</p></div></div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><p class="step-title">17 Jan</p><p class="step-sub">When everything began.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><p class="step-title">7 Feb</p><p class="step-sub">When we said those three words.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><p class="step-title">12 Apr</p><p class="step-sub">When you said yes.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><p class="step-title">28 Jun</p><p class="step-sub">The day I understood you were the one.</p></div></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div style="display:flex; align-items:center; gap:12px; justify-content:space-between">
+        <div class="hinttiny">Tiles must be opened in order: 1 → 2 → 3 → 4 → 5</div>
+        <div><button id="resetBtn" class="secondary">Reset</button></div>
+      </div>
+
+      <div class="reveal-block" id="revealBlock">
+        <div class="tile locked" data-index="1"><div class="word">YOU</div><div class="line">The light that started it all.</div></div>
+        <div class="tile locked" data-index="2"><div class="word">THANK YOU</div><div class="line">What I whisper when I see you smile.</div></div>
+        <div class="tile locked" data-index="3"><div class="word">US</div><div class="line">The word that means everything we built together.</div></div>
+        <div class="tile locked" data-index="4"><div class="word">MINE</div><div class="line">What I still can’t believe I get to call you.</div></div>
+        <div class="tile locked" data-index="5"><div class="word">LOVE YOU</div><div class="line">What this day reminds me to do forever.</div></div>
+      </div>
+
+      <div class="controls">
+        <button id="nextBtn">Open Next</button>
+        <button id="revealAllBtn" class="secondary">Reveal All</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="final">
+      <h2>23 October — The day the universe smiled first.</h2>
+      <p>I thank every sunrise for the moment you came into this world. Because without that day, none of the others would have existed —</p>
+      <div class="stamps">
+        <div class="stamp"><strong>17:01</strong> — 17 Jan</div>
+        <div class="stamp"><strong>07:02</strong> — 7 Feb</div>
+        <div class="stamp"><strong>12:04</strong> — 12 Apr</div>
+        <div class="stamp"><strong>10:06</strong> — 28 Jun</div>
+        <div class="stamp"><strong>23:10</strong> — 23 Oct</div>
+      </div>
+      <p style="margin-top:12px"><strong>You’re not just my wish come true — you are the wish itself.</strong></p>
+      <p style="font-style:italic;margin-top:6px;">Happy Birthday, my universe 💗</p>
+      <div class="closeBtn"><button id="closeBtn">Close</button></div>
+    </div>
+  </div>
+
+<script>
+const tiles = Array.from(document.querySelectorAll('.tile'));
+let nextIndex = 1;
+
+function revealTile(index){
+  const t = tiles.find(x => parseInt(x.dataset.index) === index);
+  if(!t || index !== nextIndex) return;
+  t.classList.remove('locked');
+  t.classList.add('revealed');
+  nextIndex++;
+  if(nextIndex > tiles.length) setTimeout(showFinal, 700);
+}
+
+function showFinal(){
+  document.getElementById('overlay').style.display = 'flex';
+}
+
+document.getElementById('nextBtn').addEventListener('click', ()=> revealTile(nextIndex));
+document.getElementById('revealAllBtn').addEventListener('click', ()=> {
+  (async ()=>{
+    for(let i=nextIndex;i<=tiles.length;i++){
+      revealTile(i);
+      await new Promise(r=>setTimeout(r, 400));
+    }
+  })();
+});
+document.getElementById('resetBtn').addEventListener('click', ()=> {
+  tiles.forEach(t=>{t.classList.remove('revealed');t.classList.add('locked');});
+  nextIndex=1;document.getElementById('overlay').style.display='none';
+});
+document.getElementById('closeBtn').addEventListener('click', ()=> document.getElementById('overlay').style.display='none');
+</script>
+</body>
+</html>

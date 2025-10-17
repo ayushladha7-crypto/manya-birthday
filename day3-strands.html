@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Strands — The Promise (Final Romantic Message Edition)</title>
+<style>
+  :root{
+    --bg1:#ffe6ec;
+    --bg2:#fff6e4;
+    --cell:#fff9fa;
+    --cell-border:#ffccd0;
+    --found:#ffd84d;
+    --text:#3a0b14;
+    --glow1:#ffb4c1;
+    --glow2:#ffdca8;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family:'Inter', Arial, sans-serif;
+    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    color:var(--text);
+    margin:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+  }
+  .wrap{
+    width:95vw; max-width:400px;
+    background:rgba(255,255,255,0.96);
+    border-radius:14px;
+    padding:14px;
+    box-shadow:0 6px 18px rgba(255,150,150,0.25);
+    text-align:center;
+    position:relative;
+    z-index:5;
+  }
+  h1{margin:6px 0 10px 0; font-size:18px; font-weight:800; color:#a32638;}
+  .themeCard{
+    margin:0 auto 10px;
+    border-radius:8px;
+    background:#fff4f5;
+    padding:8px 10px;
+    width:80%;
+    box-shadow:0 2px 6px rgba(255,160,160,0.1);
+  }
+  .themeLabel{font-size:11px;color:#a43a4a;font-weight:700}
+  .themeTitle{font-size:14px;color:var(--text); margin-top:4px}
+  .gridWrap{position:relative; display:block; margin:8px auto; width:90%; max-width:330px;}
+  .linkLayer{position:absolute; inset:0; pointer-events:none; z-index:1;}
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap:6px;
+    justify-content:center;
+    position:relative;
+    z-index:2;
+  }
+  .cell{
+    aspect-ratio:1/1;
+    border-radius:50%;
+    background:var(--cell);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;
+    font-size:15px;
+    color:var(--text);
+    cursor:pointer;user-select:none;
+    border:2px solid var(--cell-border);
+    box-shadow:0 2px 6px rgba(255,160,160,0.2);
+    transition:transform .12s, box-shadow .12s, background .3s;
+  }
+  .cell.selected{transform:scale(1.1);background:linear-gradient(180deg,#ffd3da,#fff2e2);box-shadow:0 6px 12px rgba(255,190,190,0.3);}
+  .cell.found{background:linear-gradient(90deg,#ffe47a,#ffd84d);border-color:#ffcb6b;color:#3a0b14;box-shadow:0 0 8px rgba(255,213,128,0.7);}
+  .cell.spfound{background:linear-gradient(90deg,#ff7aa2,#ffb46e);color:#fffaf2;border-color:#ffcba2;box-shadow:0 0 12px rgba(255,170,130,0.9);animation:pulseBrief 3s ease-in-out;}
+  @keyframes pulseBrief{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+  .controls{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px}
+  button{
+    padding:6px 8px;border-radius:8px;border:none;
+    background:linear-gradient(90deg,#ff99b3,#ffb866);
+    color:white;font-weight:700;cursor:pointer;
+    box-shadow:0 2px 6px rgba(255,160,130,0.25);
+    font-size:13px;
+  }
+  .clearGrey{background:#fff6f2;color:#a63a4a;border:1px solid rgba(255,150,150,0.2)}
+  .hintBox{
+    margin-top:8px;font-size:12px;color:#7a2b3b;
+    padding:6px 8px;border-radius:8px;
+    background:rgba(255,255,255,0.7);
+    box-shadow:0 2px 8px rgba(255,150,150,0.1);
+  }
+  .overlay{
+    position:fixed; inset:0;
+    display:none; align-items:center; justify-content:center;
+    background:radial-gradient(circle at center,rgba(255,240,240,0.9),rgba(255,210,180,0.8));
+    z-index:60; overflow:hidden;
+  }
+  .reveal{
+    background:rgba(255,255,255,0.9);
+    padding:18px; border-radius:14px; width:90%; max-width:360px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(255,140,140,0.25);
+    animation:fadeIn 1.2s ease forwards;
+    position:relative; z-index:10;
+  }
+  .reveal h2{color:#a32638;animation:pulseHeart 2s infinite ease-in-out;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes pulseHeart{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+  @keyframes floatSparkle{0%{transform:translateY(0) scale(0.8);opacity:1;}100%{transform:translateY(-800px) scale(1.6);opacity:0;}}
+  .sparkle{position:absolute;width:5px;height:5px;border-radius:50%;background:radial-gradient(circle,var(--glow1),var(--glow2));opacity:0.7;animation:floatSparkle 6s linear infinite;}
+</style>
+</head>
+<body>
+  <div class="wrap" role="main">
+    <h1>Strands — The Promise</h1>
+    <div class="themeCard"><div class="themeLabel">THEME</div><div class="themeTitle">The Promise</div></div>
+
+    <div class="gridWrap" id="gridWrap">
+      <svg class="linkLayer" id="linkLayer" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="controls">
+      <button id="clearBtn" class="clearGrey">Clear Selection</button>
+      <button id="submitBtn">Submit Word</button>
+      <button id="clearLastBtn" class="clearGrey">Clear Last Word</button>
+      <button id="hintBtn">Show Hint</button>
+    </div>
+
+    <div class="hintBox" id="hintBox">Hints will appear here when requested.</div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="reveal">
+      <h2>You found all the pieces of us 💖</h2>
+      <p>I remember that day — the air heavy with everything I wanted to say.<br>
+      My mind was chaos, my heart louder than reason,<br>
+      and for a heartbeat, I feared the worst —<br>
+      that you’d walk away, that I’d be played by hope once again.</p>
+      <p>But then… you smiled.<br>
+      And in that single second, the world steadied.<br>
+      The noise faded, the fear dissolved —<br>
+      and I knew I’d found something real.</p>
+      <p><em>Every word you’ve uncovered here is a piece of that day —<br>
+      the one where my uncertainty met your yes,<br>
+      and we began to spell “us.”</em></p>
+      <button id="closeBtn">Close</button>
+    </div>
+  </div>
+
+<script>
+const letters=[['S','E','Y','E','S','O'],['K','N','D','A','P','P'],['E','L','U','I','R','O'],['T','T','R','A','I','R'],['E','T','S','L','L','P'],['R','T','F','E','O','V'],['F','R','O','L','H','E'],['O','W','E','R','S','S']];
+const WORDS=['SHESAIDYES','PROPOSE','LETTER','TRUNK','FORT','FLOWERS','APRIL','LOVE'];
+const SPAN='SHESAIDYES';
+const HINTS=["1. The big act that changed everything — seven letters.","2. A paper from the heart — six letters.","3. A keepsake container — five letters.","4. A small defensive building — four letters.","5. What I brought you that day — seven letters."];
+
+const grid=document.getElementById('grid'),linkLayer=document.getElementById('linkLayer'),gridWrap=document.getElementById('gridWrap');
+let selection=[],found=[],hintIndex=0;
+
+function buildGrid(){
+  grid.innerHTML='';
+  for(let r=0;r<letters.length;r++){
+    for(let c=0;c<letters[r].length;c++){
+      const el=document.createElement('div');
+      el.className='cell'; el.textContent=letters[r][c];
+      el.dataset.r=r; el.dataset.c=c;
+      el.addEventListener('pointerdown',e=>{e.preventDefault();addToSelection(el);});
+      el.addEventListener('pointerenter',e=>{if(e.buttons===1||e.pressure>0)addToSelection(el);});
+      el.addEventListener('click',()=>addToSelection(el));
+      grid.appendChild(el);
+    }
+  }
+}
+
+function resizeSVG(){
+  const rect=gridWrap.getBoundingClientRect();
+  linkLayer.setAttribute('width',rect.width);
+  linkLayer.setAttribute('height',rect.height);
+}
+
+function areNeighbors(a,b){
+  const dr=Math.abs(a.r-b.r),dc=Math.abs(a.c-b.c);
+  return (dr<=1&&dc<=1)&&!(dr===0&&dc===0);
+}
+
+function addToSelection(el){
+  const r=parseInt(el.dataset.r),c=parseInt(el.dataset.c);
+  const coord={r,c,el};
+  if(el.classList.contains('found')||el.classList.contains('spfound'))return;
+  if(selection.length>0){
+    const last=selection[selection.length-1];
+    if(!areNeighbors(last,coord))return;
+  }
+  if(!selection.some(s=>s.r===r&&s.c===c)){
+    el.classList.add('selected');
+    selection.push(coord);
+  }
+}
+
+function submitSelection(){
+  const s=selection.map(s=>s.el.textContent).join('').toUpperCase();
+  const rev=s.split('').reverse().join('');
+  let matched=null;
+  for(const w of WORDS){if(w===s||w===rev)matched=w;}
+  if(matched&&!found.includes(matched)){
+    const coords=[...selection];
+    coords.forEach(it=>{it.el.classList.remove('selected'); it.el.classList.add(matched===SPAN?'spfound':'found');});
+    if(matched===SPAN){
+      coords.forEach(it=>{it.el.style.animation='pulseBrief 3s ease-in-out';setTimeout(()=>it.el.style.animation='',3000);});
+    }
+    setTimeout(()=>drawLink(coords,matched===SPAN),50);
+    found.push(matched);
+    if(found.length===WORDS.length)setTimeout(()=>showRomanticReveal(),600);
+  }else selection.forEach(it=>it.el.classList.remove('selected'));
+  selection=[];
+}
+
+function clearSelection(){selection.forEach(s=>s.el.classList.remove('selected')); selection=[];}
+
+function drawLink(coords,isSpan){
+  resizeSVG();
+  const rect=gridWrap.getBoundingClientRect();
+  const points=coords.map(pt=>{
+    const r=pt.el.getBoundingClientRect();
+    return [r.left-rect.left+r.width/2,r.top-rect.top+r.height/2];
+  });
+  const ns="http://www.w3.org/2000/svg";
+  const poly=document.createElementNS(ns,'polyline');
+  poly.setAttribute('points',points.map(p=>p.join(',')).join(' '));
+  poly.setAttribute('fill','none');
+  poly.setAttribute('stroke-linecap','round');
+  poly.setAttribute('stroke-linejoin','round');
+  poly.setAttribute('stroke-width',isSpan?'8':'6');
+  poly.setAttribute('stroke',isSpan?'url(#gradSpan)':'url(#gradFound)');
+  poly.setAttribute('filter','url(#shadow)');
+  linkLayer.appendChild(poly);
+}
+
+function showRomanticReveal(){
+  const overlay=document.getElementById('overlay');
+  overlay.style.display='flex';
+  for(let i=0;i<25;i++){
+    const s=document.createElement('div');
+    s.className='sparkle';
+    s.style.left=Math.random()*100+'%';
+    s.style.bottom='0px';
+    s.style.animationDelay=Math.random()*6+'s';
+    overlay.appendChild(s);
+  }
+}
+
+linkLayer.innerHTML=`<defs>
+<linearGradient id="gradFound" x1="0" x2="1"><stop offset="0%" stop-color="#ffd84d"/><stop offset="100%" stop-color="#ffb84d"/></linearGradient>
+<linearGradient id="gradSpan" x1="0" x2="1"><stop offset="0%" stop-color="#ff7aa2"/><stop offset="100%" stop-color="#ffb46e"/></linearGradient>
+<filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#ffb4c1" flood-opacity="0.25"/></filter>
+</defs>`;
+
+document.getElementById('submitBtn').onclick=submitSelection;
+document.getElementById('clearBtn').onclick=clearSelection;
+document.getElementById('clearLastBtn').onclick=()=>{found.pop();linkLayer.innerHTML=linkLayer.innerHTML.split('</defs>')[0]+'</defs>';document.querySelectorAll('.cell').forEach(c=>c.classList.remove('found','spfound'));};
+document.getElementById('hintBtn').onclick=()=>{if(hintIndex<HINTS.length)document.getElementById('hintBox').textContent=HINTS[hintIndex++];};
+document.getElementById('closeBtn').onclick=()=>document.getElementById('overlay').style.display='none';
+
+window.addEventListener('resize',resizeSVG);
+buildGrid(); resizeSVG();
+</script>
+</body>
+</html>

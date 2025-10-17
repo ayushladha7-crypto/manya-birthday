@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Crossword — The Day Our Worlds Crossed</title>
+<style>
+  :root{ --bg:#071029; --card:#061225; --accent:#ff6b81; --muted:#b2c6d4; --ok:#7ef3d8; --cell-size:44px; --gap:28px; }
+  *{box-sizing:border-box}
+  body{font-family:Inter, Arial, sans-serif; background:linear-gradient(180deg,#041225,#031428); color:#f1f8ff; margin:0; padding:28px; display:flex; align-items:flex-start; justify-content:center; min-height:100vh;}
+  .wrap{width:1100px; max-width:98%; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:14px; padding:22px; box-shadow:0 30px 80px rgba(0,0,0,0.6); display:flex; gap:var(--gap); align-items:flex-start;}
+  .left{flex:0 0 560px; display:flex; flex-direction:column; align-items:center}
+  .right{flex:1; padding-top:6px}
+  h1{margin:0 0 6px 0; font-size:20px; color:#fff}
+  .controls{display:flex; gap:12px; align-items:center; margin:10px 0 6px 0; width:100%}
+  .mode{background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:10px; font-weight:700; color:var(--muted);}
+  .hinttiny{font-size:13px; color:var(--muted)}
+  .board-wrap{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); padding:18px; border-radius:12px;}
+  .board{position:relative; width:520px; height:520px; background:transparent; border-radius:6px;}
+  .cell{position:absolute; width:var(--cell-size); height:var(--cell-size); border:2px solid rgba(4,18,36,0.9); background:#fff; border-radius:8px; box-sizing:border-box; display:flex; align-items:center; justify-content:center; font-weight:800; color:#03122a; font-size:20px; text-transform:uppercase; padding:0; transition:box-shadow .18s, transform .12s;}
+  .cell input{width:100%; height:100%; border:0; outline:0; text-align:center; font-weight:800; font-size:20px; background:transparent; text-transform:uppercase; color:#03122a; caret-color:#ff6b81}
+  .cell.correct{border-color:var(--ok); box-shadow:0 10px 30px rgba(46,243,200,0.06);}
+  .cell.active{box-shadow:0 14px 40px rgba(255,107,129,0.08); transform:translateY(-3px);}
+  .cluenum{position:absolute; left:6px; top:4px; font-size:12px; color:#123; font-weight:800; opacity:0.85}
+  .clues{display:flex; flex-direction:column; gap:12px; padding-left:8px}
+  .clue-title{font-weight:900; margin-bottom:6px; color:#fff}
+  .clue{margin:6px 0; font-size:15px; color:var(--muted)}
+  .clue-col{background:transparent; padding:6px 12px; border-radius:8px}
+  .overlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.6); z-index:60}
+  .reveal{background:linear-gradient(180deg, #ffd9e6 0%, #ffb6d0 60%); padding:28px; border-radius:16px; width:820px; max-width:95%; text-align:center; box-shadow:0 30px 80px rgba(0,0,0,0.6); color:#2b0b20; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.06)}
+  .reveal .content { transform:translateY(10px); opacity:0; transition:all 600ms ease; }
+  .reveal.show .content { transform:translateY(0); opacity:1; }
+  .heart{font-size:56px; margin:8px 0}
+  button{padding:10px 14px; border-radius:10px; border:none; background:linear-gradient(90deg,#ff6b81,#ff92ad); color:#2b0b20; font-weight:800; cursor:pointer}
+  .hearts { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .hearts span { position:absolute; bottom:-40px; font-size:22px; opacity:0; transform:translateY(0) scale(0.8); animation:floatUp 5s linear infinite; }
+  .hearts span:nth-child(1){ left:10%; animation-delay:0s; }
+  .hearts span:nth-child(2){ left:28%; animation-delay:0.6s; }
+  .hearts span:nth-child(3){ left:46%; animation-delay:1.2s; }
+  .hearts span:nth-child(4){ left:68%; animation-delay:0.9s; }
+  .hearts span:nth-child(5){ left:86%; animation-delay:1.6s; }
+  @keyframes floatUp {
+    0% { transform:translateY(0) scale(0.8); opacity:0; }
+    10% { opacity:1; }
+    50% { transform:translateY(-140px) scale(1); opacity:0.95; }
+    100% { transform:translateY(-320px) scale(1.08); opacity:0; }
+  }
+  /* responsive */
+  @media(max-width:980px){ .wrap{flex-direction:column; align-items:center} .left{width:100%} .right{width:100%} .board{transform:scale(0.86); transform-origin:top left} }
+</style>
+</head>
+<body>
+  <div class="wrap" role="main">
+    <div class="left">
+      <h1>Crossword — The Day Our Worlds Crossed</h1>
+      <div class="controls" aria-hidden="false">
+        <div class="mode" id="modeIndicator">Mode: Across</div>
+        <div class="hinttiny">Click a cell or press Space to toggle direction. Arrow keys navigate.</div>
+      </div>
+      <div class="board-wrap">
+        <div class="board" id="board" aria-label="Crossword grid"></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="clue-col">
+        <div class="clue-title">Across</div>
+        <div class="clues">
+          <div class="clue"><strong>3.</strong> The first word we ever said to each other</div>
+          <div class="clue"><strong>4.</strong> What I felt the moment I saw you</div>
+          <div class="clue"><strong>5.</strong> What our first day together felt like</div>
+        </div>
+      </div>
+
+      <div style="height:26px"></div>
+
+      <div class="clue-col">
+        <div class="clue-title">Down</div>
+        <div class="clues">
+          <div class="clue"><strong>1.</strong> What you’ve been since that day</div>
+          <div class="clue"><strong>2.</strong> The place where we first met</div>
+          <div class="clue"><strong>6.</strong> Since then it is all ____</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="reveal" role="dialog" aria-modal="true">
+      <div class="hearts" aria-hidden="true">
+        <span style="color:rgba(255,80,140,0.95)">❤</span>
+        <span style="color:rgba(255,130,160,0.92)">❤</span>
+        <span style="color:rgba(255,180,200,0.9)">❤</span>
+        <span style="color:rgba(255,100,150,0.94)">❤</span>
+        <span style="color:rgba(255,140,170,0.9)">❤</span>
+      </div>
+      <div class="content" id="revealContent">
+        <div style="font-size:24px; font-weight:900">You finished the first piece of us.</div>
+        <div style="margin-top:12px; font-size:16px; line-height:1.45">That <strong>hello</strong> was small and simple — but it rewrote the map of my days. Two ordinary people, one unexpected moment, and everything that followed felt sweeter simply because you were there. I still remember the tiny flutter, the quiet shock, the smile that made the world gentler. You were magic then; you are magic now; and you will always be the warm, steady thing I return to.</div>
+        <div style="margin-top:14px; font-size:15px; font-weight:800">17 January — The day our story began.</div>
+        <div style="margin-top:14px; font-size:13px; color:#6a4050">The rest of the story will unfold, one day at a time... until it says everything my heart never could.</div>
+        <div style="margin-top:22px"><button id="closeBtn">Close</button></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// --- Grid data ---
+const entries = [
+  {word:"HELLO", dir:"across", col:5, row:5, num:3},
+  {word:"ZOSTEL", dir:"down", col:9, row:4, num:2},
+  {word:"MAGIC", dir:"across", col:2, row:6, num:4},
+  {word:"SPECIAL", dir:"down", col:6, row:3, num:1},
+  {word:"SERENDIPITY", dir:"across", col:0, row:7, num:5},
+  {word:"YELLOW", dir:"down", col:10, row:7, num:6}
+];
+
+const cellSize = 44;
+const offsetX = 36;
+const offsetY = 18;
+const board = document.getElementById('board');
+const modeIndicator = document.getElementById('modeIndicator');
+let activeDirection = 'across';
+let activeInput = null;
+
+// build grid map
+const grid = {};
+entries.forEach(e => {
+  const w = e.word.toUpperCase();
+  for(let i=0;i<w.length;i++){
+    const col = e.col + (e.dir==='across'? i:0);
+    const row = e.row + (e.dir==='down'? i:0);
+    const key = col+","+row;
+    if(!grid[key]) grid[key] = { letter: w[i], starts: [], entries: [] };
+    grid[key].letter = w[i];
+    grid[key].entries.push({num: e.num, dir: e.dir, word: e.word, startCol: e.col, startRow: e.row});
+    if(i===0) grid[key].starts.push(e.num);
+  }
+});
+
+// create cell elements
+const coords = Object.keys(grid).map(k=>{ const [c,r]=k.split(',').map(Number); return {col:c,row:r,key:k, ...grid[k]}; });
+coords.sort((a,b)=> a.row===b.row? a.col-b.col : a.row-b.row);
+
+coords.forEach(cell=>{
+  const x = offsetX + cell.col * cellSize;
+  const y = offsetY + cell.row * cellSize;
+  const div = document.createElement('div');
+  div.className = 'cell';
+  div.style.left = x + 'px';
+  div.style.top = y + 'px';
+  div.dataset.pos = cell.key;
+  if(cell.starts && cell.starts.length){
+    const num = document.createElement('div');
+    num.className = 'cluenum';
+    num.textContent = cell.starts[0];
+    div.appendChild(num);
+  }
+  const inp = document.createElement('input');
+  inp.setAttribute('maxlength','1');
+  inp.setAttribute('autocomplete','off');
+  inp.dataset.solution = cell.letter;
+  inp.dataset.entries = JSON.stringify(cell.entries);
+  div.appendChild(inp);
+  board.appendChild(div);
+  cell.el = div;
+  cell.input = inp;
+});
+
+// helper functions
+function cellBy(col,row){ return document.querySelector('.cell[data-pos="'+col+','+row+'"]'); }
+function inputAt(col,row){ const el = cellBy(col,row); return el ? el.querySelector('input') : null; }
+function parsePosFromInput(inp){ const p = inp.parentElement.dataset.pos.split(',').map(Number); return {col:p[0], row:p[1], cell: inp.parentElement}; }
+function findEntryForInput(inp, direction){ const entries = JSON.parse(inp.dataset.entries || '[]'); for(const e of entries){ if(e.dir === direction) return e; } return entries[0] || null; }
+
+// ordered cells for fallback navigation
+const ordered = Array.from(document.querySelectorAll('.cell')).sort((a,b)=>{
+  const ax = parseInt(a.style.left), ay = parseInt(a.style.top);
+  const bx = parseInt(b.style.left), by = parseInt(b.style.top);
+  if(ay === by) return ax - bx;
+  return ay - by;
+});
+
+// set active input
+function setActiveInput(inp){
+  if(activeInput && activeInput !== inp) activeInput.parentElement.classList.remove('active');
+  activeInput = inp;
+  if(inp){
+    inp.parentElement.classList.add('active');
+    inp.focus({preventScroll:true});
+  }
+  updateModeIndicator();
+}
+function updateModeIndicator(){ modeIndicator.textContent = 'Mode: ' + (activeDirection === 'across' ? 'Across' : 'Down'); }
+function toggleDirection(){ activeDirection = activeDirection === 'across' ? 'down' : 'across'; updateModeIndicator(); }
+
+// click toggles direction and focuses cell
+board.addEventListener('click', (e)=>{
+  const cell = e.target.closest('.cell');
+  if(!cell) return;
+  toggleDirection();
+  const inp = cell.querySelector('input');
+  setActiveInput(inp);
+});
+
+// space toggles
+document.addEventListener('keydown', (e)=>{ if(e.code === 'Space'){ e.preventDefault(); toggleDirection(); } });
+
+// input events
+document.querySelectorAll('.cell input').forEach(inp=>{
+  inp.addEventListener('focus', ()=> setActiveInput(inp));
+  inp.addEventListener('click', ()=> setActiveInput(inp));
+  inp.addEventListener('input', ()=>{
+    const v = (inp.value || '').toUpperCase().replace(/[^A-Z]/g,'').slice(0,1);
+    inp.value = v;
+    const sol = inp.dataset.solution.toUpperCase();
+    if(v === sol) inp.parentElement.classList.add('correct'); else inp.parentElement.classList.remove('correct');
+    moveToNextInDirection(inp, activeDirection);
+    checkComplete();
+  });
+  inp.addEventListener('keydown', (e)=>{
+    if(e.key === 'Backspace'){
+      if(!inp.value){ moveToPrevInDirection(inp, activeDirection); e.preventDefault(); }
+    }
+    if(e.key === 'ArrowRight'){ moveToNeighbor(inp,'right'); e.preventDefault(); }
+    if(e.key === 'ArrowLeft'){ moveToNeighbor(inp,'left'); e.preventDefault(); }
+    if(e.key === 'ArrowDown'){ moveToNeighbor(inp,'down'); e.preventDefault(); }
+    if(e.key === 'ArrowUp'){ moveToNeighbor(inp,'up'); e.preventDefault(); }
+    if(e.code === 'Space'){ e.preventDefault(); toggleDirection(); }
+  });
+});
+
+function moveToNextInDirection(inp, direction){
+  const entry = findEntryForInput(inp, direction);
+  if(!entry) return;
+  const pos = parsePosFromInput(inp);
+  let index = (direction === 'across') ? pos.col - entry.startCol : pos.row - entry.startRow;
+  const nextIndex = index + 1;
+  if(nextIndex < entry.word.length){
+    const nextCol = entry.startCol + (direction === 'across'? nextIndex: 0);
+    const nextRow = entry.startRow + (direction === 'down'? nextIndex: 0);
+    const nextInp = inputAt(nextCol, nextRow);
+    if(nextInp) setActiveInput(nextInp);
+  }
+}
+
+function moveToPrevInDirection(inp, direction){
+  const entry = findEntryForInput(inp, direction);
+  if(!entry) return;
+  const pos = parsePosFromInput(inp);
+  let index = (direction === 'across') ? pos.col - entry.startCol : pos.row - entry.startRow;
+  const prevIndex = index - 1;
+  if(prevIndex >= 0){
+    const prevCol = entry.startCol + (direction === 'across'? prevIndex: 0);
+    const prevRow = entry.startRow + (direction === 'down'? prevIndex: 0);
+    const prevInp = inputAt(prevCol, prevRow);
+    if(prevInp) setActiveInput(prevInp);
+  }
+}
+
+function moveToNeighbor(inp, dir){
+  const pos = parsePosFromInput(inp);
+  let c = pos.col, r = pos.row;
+  if(dir === 'right') c++;
+  if(dir === 'left') c--;
+  if(dir === 'down') r++;
+  if(dir === 'up') r--;
+  const neighbor = inputAt(c,r);
+  if(neighbor) setActiveInput(neighbor);
+}
+
+// check complete and reveal
+function checkComplete(){
+  const all = Array.from(document.querySelectorAll('.cell input'));
+  const ok = all.every(inp => (inp.value || '').toUpperCase() === inp.dataset.solution.toUpperCase());
+  if(ok){
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = 'flex';
+    const reveal = overlay.querySelector('.reveal');
+    setTimeout(()=> reveal.classList.add('show'), 60);
+    all.forEach(i=> i.disabled = true);
+    playChime();
+  }
+}
+
+// gentle chime
+function playChime(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
+    const g = ctx.createGain();
+    o1.type = 'sine'; o2.type = 'sine';
+    o1.frequency.value = 440; o2.frequency.value = 660;
+    o1.connect(g); o2.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+    o1.start(); o2.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
+    o1.stop(ctx.currentTime + 1.25); o2.stop(ctx.currentTime + 1.25);
+  }catch(e){}
+}
+
+// close overlay
+document.getElementById('closeBtn').addEventListener('click', ()=>{
+  const overlay = document.getElementById('overlay');
+  overlay.querySelector('.reveal').classList.remove('show');
+  overlay.style.display = 'none';
+});
+
+// initial focus
+const first = Array.from(document.querySelectorAll('.cell')).sort((a,b)=>{
+  const ax = parseInt(a.style.left), ay = parseInt(a.style.top);
+  const bx = parseInt(b.style.left), by = parseInt(b.style.top);
+  if(ay === by) return ax - bx; return ay - by;
+})[0];
+if(first){ const fi = first.querySelector('input'); setActiveInput(fi); fi.focus(); }
+
+</script>
+</body>
+</html>
