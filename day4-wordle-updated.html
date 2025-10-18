@@ -1,0 +1,207 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Wordle — The Realization (Day 4)</title>
+<style>
+  :root{
+    --bg1:#fff7f9; --bg2:#ffdfe6;
+    --primary:#ff6b8f; --primary-2:#ffb1c8;
+    --tile:#ffffff; --tile-border:#e6cfd6;
+    --absent:#d6d6d6; --present:#ffd84d; --correct:#7ee6c4;
+    --text:#2b0b11;
+    --width:520px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:32px; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,var(--bg1),var(--bg2));
+    color:var(--text); display:flex; align-items:center; justify-content:center; min-height:100vh;
+  }
+  .wrap{
+    width:var(--width); max-width:96%;
+    background:rgba(255,255,255,0.9); border-radius:14px; padding:20px 18px; box-shadow:0 30px 80px rgba(0,0,0,0.08);
+  }
+  header{display:flex; align-items:center; gap:12px}
+  h1{margin:0; font-size:20px; color:var(--primary); font-weight:900}
+  .lead{margin:6px 0 14px 0; font-size:13px; color:#6b2a3a}
+  .board{display:grid; grid-template-rows:repeat(6,1fr); gap:6px; justify-items:center;}
+  .row{display:grid; grid-template-columns:repeat(var(--word-length), 1fr); gap:6px}
+  .tile{
+    width:58px; height:58px; border-radius:8px; background:var(--tile); display:flex; align-items:center; justify-content:center;
+    font-size:24px; font-weight:900; text-transform:uppercase; border:2px solid var(--tile-border); user-select:none;
+    box-shadow:0 6px 18px rgba(0,0,0,0.04);
+  }
+  .tile.filled{transform:translateY(-6px); transition:transform .12s}
+  .tile.flip{animation:flipAnim .5s ease forwards}
+  @keyframes flipAnim{
+    0%{transform:rotateX(0) translateY(0)}
+    50%{transform:rotateX(90deg) translateY(-6px)}
+    100%{transform:rotateX(0) translateY(-6px)}
+  }
+  .keyboard{margin-top:14px; display:flex; flex-direction:column; gap:8px; align-items:center}
+  .key-row{display:flex; gap:8px}
+  .key{padding:10px 12px; border-radius:8px; min-width:42px; text-align:center; font-weight:800; cursor:pointer; user-select:none;
+       background:linear-gradient(180deg,#ffffff,#fff1f4); border:1px solid rgba(0,0,0,0.06)}
+  .key.wide{min-width:84px}
+  .key.absent{background:var(--absent); color:#fff}
+  .key.present{background:var(--present); color:#3a0b14}
+  .key.correct{background:var(--correct); color:#06201b}
+  .controls{display:flex; gap:8px; margin-top:12px; justify-content:center}
+  .btn{padding:8px 12px; border-radius:10px; border:none; font-weight:800; cursor:pointer; background:linear-gradient(90deg,var(--primary),var(--primary-2)); color:white}
+  .muted{background:#fff6f7; color:var(--primary); border:1px solid rgba(255,107,137,0.12)}
+  .overlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.45); z-index:80}
+  .reveal{width:760px; max-width:94%; background:linear-gradient(180deg,#ffdfe8,#ffcfdc); padding:28px; border-radius:12px; text-align:center; box-shadow:0 60px 120px rgba(0,0,0,0.24)}
+  .reveal h2{margin:6px 0 8px 0; color:#a32638}
+  .reveal p{margin:10px 0 0 0; color:#4b0f1a; line-height:1.55; font-size:15px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div style="width:44px;height:44px;border-radius:10px; background:linear-gradient(90deg,var(--primary),var(--primary-2)); display:flex;align-items:center;justify-content:center;color:white;font-weight:900">4</div>
+    <div>
+      <h1>Wordle — The Realization</h1>
+      <div class="lead">Find the secret word. Hint: this day changed everything.</div>
+    </div>
+  </header>
+
+  <main>
+    <div id="board" class="board" style="--word-length:5"></div>
+    <div class="keyboard" id="keyboard"></div>
+    <div class="controls">
+      <button id="resetBtn" class="btn muted">Reset</button>
+    </div>
+  </main>
+</div>
+
+<div id="overlay" class="overlay">
+  <div class="reveal">
+    <h2>The day everything aligned.</h2>
+    <p>It was my birthday — my happiest one yet.<br>
+    I laughed, I cried, and through every moment, I kept finding you at the center of it all.<br>
+    That day, I realized something I’ll never unsee —<br>
+    you aren’t just someone I love,<br>
+    <strong>you’re “THE ONE” for me.</strong></p>
+    <div style="margin-top:18px"><button id="closeReveal" class="btn">Close</button></div>
+  </div>
+</div>
+
+<script>
+const ANSWER = "FOUND";
+const WORD_LENGTH = 5;
+const MAX_GUESSES = 6;
+const boardEl = document.getElementById('board');
+const keyboardEl = document.getElementById('keyboard');
+const overlay = document.getElementById('overlay');
+const closeReveal = document.getElementById('closeReveal');
+let currentRow=0,currentCol=0,isGameOver=false;
+let grid=[];
+
+function createBoard(){
+  boardEl.innerHTML='';
+  grid=[];
+  for(let r=0;r<MAX_GUESSES;r++){
+    const rowEl=document.createElement('div');
+    rowEl.className='row';
+    boardEl.appendChild(rowEl);
+    const row=[];
+    for(let c=0;c<WORD_LENGTH;c++){
+      const tile=document.createElement('div');
+      tile.className='tile';
+      rowEl.appendChild(tile);
+      row.push(tile);
+    }
+    grid.push(row);
+  }
+}
+function createKeyboard(){
+  keyboardEl.innerHTML='';
+  const rows=[
+    "QWERTYUIOP".split(''),
+    "ASDFGHJKL".split(''),
+    ["Enter",..."ZXCVBNM".split(''),"Back"]
+  ];
+  rows.forEach(r=>{
+    const rowEl=document.createElement('div');
+    rowEl.className='key-row';
+    r.forEach(k=>{
+      const key=document.createElement('button');
+      key.className='key';
+      if(k==="Enter"||k==="Back")key.classList.add('wide');
+      key.textContent=k==="Back"?"⌫":k;
+      key.addEventListener('click',()=>handleKey(k));
+      rowEl.appendChild(key);
+    });
+    keyboardEl.appendChild(rowEl);
+  });
+}
+function handleKey(key){
+  if(isGameOver)return;
+  if(key==='Enter')return submitGuess();
+  if(key==='Back')return deleteLetter();
+  if(/^[A-Z]$/i.test(key))addLetter(key.toUpperCase());
+}
+function addLetter(ch){
+  if(currentCol>=WORD_LENGTH)return;
+  const tile=grid[currentRow][currentCol];
+  tile.textContent=ch;
+  tile.classList.add('filled');
+  currentCol++;
+}
+function deleteLetter(){
+  if(currentCol<=0)return;
+  currentCol--;
+  const tile=grid[currentRow][currentCol];
+  tile.textContent='';
+  tile.classList.remove('filled');
+}
+function submitGuess(){
+  if(currentCol!==WORD_LENGTH)return flashRow(currentRow);
+  const guess=grid[currentRow].map(t=>t.textContent).join('');
+  const result=evaluateGuess(guess,ANSWER);
+  revealRow(currentRow,result);
+  if(guess===ANSWER){win();return;}
+  currentRow++;
+  currentCol=0;
+  if(currentRow>=MAX_GUESSES)lose();
+}
+function evaluateGuess(g,a){
+  const res=new Array(WORD_LENGTH).fill('absent');
+  const ans=a.split('');
+  for(let i=0;i<WORD_LENGTH;i++){if(g[i]===ans[i]){res[i]='correct';ans[i]=null;}}
+  for(let i=0;i<WORD_LENGTH;i++){if(res[i]==='correct')continue;const idx=ans.indexOf(g[i]);if(idx!==-1){res[i]='present';ans[idx]=null;}}return res;
+}
+function revealRow(row,res){
+  const tiles=grid[row];
+  tiles.forEach((t,i)=>{
+    setTimeout(()=>{
+      t.classList.add('flip');
+      setTimeout(()=>{
+        t.classList.remove('flip');
+        if(res[i]==='correct')t.style.background='var(--correct)';
+        else if(res[i]==='present')t.style.background='var(--present)';
+        else{t.style.background='var(--absent)';t.style.color='#fff';}
+      },250);
+    },i*250);
+  });
+}
+function flashRow(row){
+  grid[row].forEach(t=>t.animate([{transform:'translateY(0)'},{transform:'translateY(-8px)'},{transform:'translateY(8px)'},{transform:'translateY(0)'}],{duration:360}));
+}
+function win(){isGameOver=true;setTimeout(()=>{overlay.style.display='flex';},900);}
+function lose(){isGameOver=true;setTimeout(()=>{overlay.style.display='flex';},900);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter')handleKey('Enter');
+  else if(e.key==='Backspace')handleKey('Back');
+  else if(/^[a-zA-Z]$/.test(e.key))handleKey(e.key.toUpperCase());
+});
+document.getElementById('resetBtn').onclick=()=>{currentRow=0;currentCol=0;isGameOver=false;createBoard();createKeyboard();};
+closeReveal.onclick=()=>overlay.style.display='none';
+createBoard();createKeyboard();
+</script>
+</body>
+</html>
