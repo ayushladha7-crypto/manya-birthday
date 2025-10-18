@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Connections — The Day Love Spoke (Version A: Soft Float-Up)</title>
+<style>
+  :root{
+    --bg1:#fff6f9; --bg3:#ffd4e6; --title:#ff7a9b; --text:#3a0a1c;
+    --locked1:#ffe6ef; --locked2:#fff7e6; --locked3:#eef9ff; --locked4:#e9fff4;
+  }
+  *{box-sizing:border-box}
+  body{font-family:Inter, Arial, sans-serif; background:linear-gradient(180deg,var(--bg1),var(--bg3)); color:var(--text); margin:0; padding:28px; display:flex; align-items:center; justify-content:center; min-height:100vh;}
+  .wrap{width:980px; max-width:96%; background:rgba(255,255,255,0.8); border-radius:14px; padding:20px; box-shadow:0 30px 80px rgba(0,0,0,0.08); text-align:center; display:flex; flex-direction:column; gap:18px; align-items:center;}
+  h1{margin:6px 0 2px 0; font-size:24px; font-weight:900; color:var(--title)}
+  .topRows{width:100%; display:flex; flex-direction:column; gap:12px; align-items:center; min-height:220px; justify-content:center}
+  .rowSlot{width:86%; max-width:740px; min-height:46px; display:flex; gap:8px; justify-content:center; align-items:center; flex-wrap:wrap}
+  .rowLabel{font-size:14px; color:rgba(58,10,28,0.9); font-weight:800; margin-top:6px}
+  .boardArea{display:flex; align-items:center; justify-content:center; gap:30px; width:100%}
+  .cards{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; width:460px}
+  .card{background:#ffffff; color:var(--text); border-radius:10px; padding:14px 10px; font-weight:900; font-size:16px; cursor:pointer; user-select:none; transition:transform .18s, box-shadow .18s, background .18s; border:1px solid rgba(0,0,0,0.04);}
+  .card.selected{transform:translateY(-6px); box-shadow:0 18px 40px rgba(255,80,140,0.06); background:linear-gradient(90deg,#fff4f7,#ffeef3)}
+  .card.locked{cursor:default; transform:none; box-shadow:0 8px 24px rgba(0,0,0,0.04)}
+  .controls{margin-top:6px}
+  .small{font-size:13px; color:#6b2a3a}
+  button{padding:8px 12px; border-radius:10px; border:none; background:linear-gradient(90deg,#ff7a9b,#ffadc0); color:#fff; font-weight:800; cursor:pointer}
+  /* reveal overlay */
+  .overlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.4); z-index:60}
+  .reveal{background:linear-gradient(180deg,#ffdfe8,#ffcfdc); padding:26px; border-radius:16px; width:820px; max-width:95%; text-align:center; box-shadow:0 30px 80px rgba(0,0,0,0.12); color:var(--text); position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.6)}
+  .reveal .content{opacity:0; transform:translateY(10px); transition:all 600ms ease}
+  .reveal.show .content{opacity:1; transform:translateY(0)}
+  .petals{position:absolute; inset:0; pointer-events:none; overflow:hidden}
+  .petal{position:absolute; width:18px; height:24px; opacity:0.95; transform-origin:center; border-radius:50% 50% 50% 50%/60% 60% 40% 40%; background:rgba(255,255,255,0.95); filter:drop-shadow(0 6px 12px rgba(255,150,190,0.06)); animation:drift linear infinite}
+  .petal.p1{left:8%; bottom:-30px; animation-duration:18s; animation-delay:0s; transform:rotate(-20deg) scale(1.05);}
+  .petal.p2{left:22%; bottom:-30px; animation-duration:20s; animation-delay:2s; transform:rotate(12deg) scale(0.95);}
+  .petal.p3{left:40%; bottom:-30px; animation-duration:16s; animation-delay:1s; transform:rotate(8deg) scale(1.0);}
+  .petal.p4{left:62%; bottom:-30px; animation-duration:22s; animation-delay:0.5s; transform:rotate(-10deg) scale(0.95);}
+  .petal.p5{left:80%; bottom:-30px; animation-duration:19s; animation-delay:3s; transform:rotate(6deg) scale(1.02);}
+  @keyframes drift{0%{transform:translateY(0) rotate(0deg) scale(0.9); opacity:0}10%{opacity:1}50%{transform:translateY(-220px) rotate(30deg) scale(1.02); opacity:0.95}100%{transform:translateY(-520px) rotate(60deg) scale(1.05); opacity:0}}
+  /* float-up animation */
+  .float-up{animation:floatup 700ms cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes floatup{from{transform:translateY(0); opacity:1} to{transform:translateY(-90px); opacity:1}}
+  /* responsive */
+  @media(max-width:820px){ .wrap{width:96%; padding:16px} .cards{width:100%; grid-template-columns:repeat(2,1fr)} .rowSlot{width:95%} }
+</style>
+</head>
+<body>
+  <div class="wrap" role="main" aria-label="Connections puzzle - Version A">
+    <h1>Connections — The Day Love Spoke</h1>
+
+    <div class="topRows" id="topRows">
+      <div class="rowSlot" id="row1"></div>
+      <div class="rowLabel" id="label1"></div>
+      <div class="rowSlot" id="row2"></div>
+      <div class="rowLabel" id="label2"></div>
+      <div class="rowSlot" id="row3"></div>
+      <div class="rowLabel" id="label3"></div>
+      <div class="rowSlot" id="row4"></div>
+      <div class="rowLabel" id="label4"></div>
+    </div>
+
+    <div class="boardArea">
+      <div class="cards" id="grid"></div>
+    </div>
+
+    <div class="controls"><button id="resetBtn">Reset Selection</button></div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="reveal" role="dialog" aria-modal="true">
+      <div class="petals" aria-hidden="true">
+        <div class="petal p1"></div>
+        <div class="petal p2"></div>
+        <div class="petal p3"></div>
+        <div class="petal p4"></div>
+        <div class="petal p5"></div>
+      </div>
+      <div class="content" id="revealContent">
+        <div style="font-size:22px; font-weight:900">You found all the pieces of love.</div>
+        <div style="margin-top:12px; font-size:15px; line-height:1.45"><strong>The day our hearts spoke in the same language.</strong> That moment wasn’t loud or dramatic but was soft, honest, and entirely ours. Every day since has been a thousand small echoes of that single truth — <strong>that I love you the most, baby.</strong></div>
+        <div style="margin-top:12px; font-weight:800">You turned a moment into a promise. 💗</div>
+        <div style="margin-top:14px; color:#6b2a3a; font-size:13px">*(Tomorrow, another memory will unfold…)*</div>
+        <div style="margin-top:18px"><button id="closeBtn">Close</button></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Groups and order (top to bottom)
+const groups = [
+  {name:'Feelings', words:['HEART','SOUL','FOREVER','LOVE'], color:getComputedStyle(document.documentElement).getPropertyValue('--locked1') || '#ffe6ef'},
+  {name:'Things I Adore', words:['SMILE','VOICE','EYES','TOUCH'], color:getComputedStyle(document.documentElement).getPropertyValue('--locked2') || '#fff7e6'},
+  {name:'Our Moments', words:['CHAT','BUS','WALK','DANCE'], color:getComputedStyle(document.documentElement).getPropertyValue('--locked3') || '#eef9ff'},
+  {name:'The Day We Said It', words:['7TH','CONFESS','FEB','DAWN'], color:getComputedStyle(document.documentElement).getPropertyValue('--locked4') || '#e9fff4'}
+];
+
+// flatten and shuffle words
+let words = groups.flatMap(g=>g.words);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+words = shuffle(words.slice());
+
+const grid = document.getElementById('grid');
+const rowSlots = [document.getElementById('row1'), document.getElementById('row2'), document.getElementById('row3'), document.getElementById('row4')];
+const rowLabels = [document.getElementById('label1'), document.getElementById('label2'), document.getElementById('label3'), document.getElementById('label4')];
+
+let selected = [];
+let lockedCount = 0;
+
+// render cards
+words.forEach(w=>{
+  const d = document.createElement('div');
+  d.className = 'card';
+  d.tabIndex = 0;
+  d.textContent = w;
+  d.dataset.word = w;
+  d.addEventListener('click', ()=> toggleSelect(d));
+  d.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') toggleSelect(d) });
+  grid.appendChild(d);
+});
+
+function toggleSelect(card){
+  if(card.classList.contains('locked')) return;
+  const w = card.dataset.word;
+  if(card.classList.contains('selected')){
+    card.classList.remove('selected');
+    selected = selected.filter(x=>x !== w);
+  } else {
+    if(selected.length >= 4) return;
+    card.classList.add('selected');
+    selected.push(w);
+  }
+  if(selected.length === 4) checkAutoGroup();
+}
+
+function findGroupForSelection(sel){
+  const s = new Set(sel);
+  for(const g of groups){
+    if(g.words.length !== sel.length) continue;
+    if(g.words.every(x=> s.has(x))) return g;
+  }
+  return null;
+}
+
+function checkAutoGroup(){
+  const match = findGroupForSelection(selected);
+  const selectedNodes = Array.from(document.querySelectorAll('.card.selected'));
+  if(match){
+    // determine slot index by groups order
+    const index = groups.findIndex(g=> g.name === match.name);
+    const slot = rowSlots[index];
+    const label = rowLabels[index];
+    // move each selected node into slot with float-up effect
+    selectedNodes.forEach(node=>{
+      node.classList.remove('selected');
+      node.classList.add('locked');
+      // set background color based on group
+      node.style.background = match.color.trim();
+      node.style.boxShadow = '0 10px 30px rgba(0,0,0,0.04)';
+      // append to slot (this will visually move it)
+      slot.appendChild(node);
+      node.classList.add('float-up');
+      setTimeout(()=> node.classList.remove('float-up'), 900);
+    });
+    label.textContent = match.name;
+    lockedCount++;
+    selected = [];
+    if(lockedCount === 4) setTimeout(showReveal, 700);
+  } else {
+    // wrong: shake and deselect
+    const nodes = document.querySelectorAll('.card.selected');
+    nodes.forEach(n=>{
+      n.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}], {duration:380});
+      n.classList.remove('selected');
+    });
+    selected = [];
+  }
+}
+
+function resetSelection(){
+  document.querySelectorAll('.card.selected').forEach(c=>c.classList.remove('selected'));
+  selected = [];
+}
+document.getElementById('resetBtn').addEventListener('click', resetSelection);
+
+// reveal overlay
+function showReveal(){
+  const overlay = document.getElementById('overlay');
+  overlay.style.display = 'flex';
+  const rev = overlay.querySelector('.reveal');
+  setTimeout(()=> rev.classList.add('show'), 60);
+  playChime();
+}
+
+// gentle chime
+function playChime(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
+    const g = ctx.createGain();
+    o1.type = 'sine'; o2.type = 'sine';
+    o1.frequency.value = 440; o2.frequency.value = 660;
+    o1.connect(g); o2.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+    o1.start(); o2.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
+    o1.stop(ctx.currentTime + 1.25); o2.stop(ctx.currentTime + 1.25);
+  }catch(e){}
+}
+
+document.getElementById('closeBtn').addEventListener('click', ()=>{
+  const overlay = document.getElementById('overlay');
+  overlay.querySelector('.reveal').classList.remove('show');
+  overlay.style.display = 'none';
+});
+
+</script>
+</body>
+</html>
